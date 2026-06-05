@@ -1,0 +1,227 @@
+following are formats used to create a voucher under different groups:
+
+1. Contra                            [type: contra]
+const voucher = {
+    company: "Google",
+    type: "Contra",
+    date: "20260401",
+    narration: "Test transaction",
+    entries: [
+        {
+            ledgerName: "Cash",
+            amount: 1000,
+            isDeemedPositive: false // Debit
+        },
+        {
+            ledgerName: "Bank Account",
+            amount: 1000,
+            isDeemedPositive: true // Credit
+        }
+    ]
+};
+
+2. Journal                           [type: journal]
+const voucher = {
+    company: "Google",
+    type: "Journal",
+    date: "20260401",
+    narration: "Test Journal Entry",
+    entries: [
+        {
+            ledgerName: "Purchase",
+            amount: 1234,
+            isDeemedPositive: false
+        },
+        {
+            ledgerName: "Cash",
+            amount: 1234,
+            isDeemedPositive: true
+        }
+    ]
+};
+
+3. Payment                           [type: payment]
+const voucher = {
+    company: "Google",
+
+    ledgers: [
+        { name: "Eraser", parent: "Direct Expenses" },
+        { name: "Bank Account", parent: "Bank Accounts" }
+    ],
+
+    voucher: {
+        type: "Payment",
+        date: "20260401",
+        narration: "eraser bought",
+        entries: [
+            { ledgerName: "Eraser", amount: 100, isDeemedPositive: true },
+            { ledgerName: "Bank Account", amount: 100, isDeemedPositive: false }
+        ]
+    }
+};
+
+4. Purchase                           [type: purchase]
+const voucher = {
+    company: "Google",
+
+    group: {
+        name: "Purchase Accounts",
+        parent: "Direct Expenses"
+    },
+
+    ledgers: [
+        { name: "Purchanse", parent: "Purchase Accounts" }, 
+        { name: "ABC Supplier", parent: "Sundry Creditors", isParty: true }
+    ],
+
+    stockItem: {
+        name: "Pencil",
+        unit: "Nos"
+    },
+
+    voucher: {
+        type: "Purchase",
+        date: "20260401",
+        party: "ABC Supplier",
+        narration: "Purchase of pencils",
+        reference: "1222",
+
+        items: [
+            {
+                name: "Pencil",
+                qty: 10,
+                rate: 234.5
+            }
+        ]
+    }
+};
+
+5. Receipt                               [type: receipt]
+const voucher = {
+    company: "Google",
+
+    voucher: {
+        date: "20260401",
+        party: "Bank Account",   // must exist in Tally
+        narration: "Receipt for erasers",
+
+        instrumentNumber: "123456",
+        bankName: "State Bank of India",
+
+        entries: [
+            {
+                ledger: "Eraser",   // income ledger
+                amount: 200
+            }
+        ]
+    }
+};
+
+6. Sales                              [type: sales]
+const voucher = {
+    company: "Google",
+
+    ledgers: [
+        { name: "E", parent: "Sundry Debtors" },
+        { name: "B", parent: "Sales Accounts" }
+    ],
+
+    voucher: {
+        type: "Sales",
+        date: "20260401",
+        narration: "Sold goods",
+
+        partyLedger: "E",
+
+        items: [
+            {
+                name: "Pencil",
+                amount: 2000,
+                salesLedger: "B"
+            }
+        ]
+    }
+};
+
+7. Inventory                          [type: inventory]
+const voucher = {
+    company: "Google",
+
+    stockGroups: [
+        { name: "Stationary Items", parent: "" }
+    ],
+
+    stockItems: [
+        { name: "Pencil", group: "Stationary Items" },
+    ],
+
+    godowns: [
+        { name: "Main Location", parent: "" }
+    ],
+
+    voucher: {
+        type: "Stock Journal",
+        date: "20260401",
+        narration: "Stock movement",
+
+        inEntries: [
+            {
+                stockItemName: "Pencil",
+                qty: 10,
+                amount: 100,
+                godown: "Main Location",
+                batch: "Batch-1"
+            }
+        ],
+
+        outEntries: [
+            {
+                stockItemName: "Pencil",
+                qty: 5,
+                amount: 50,
+                godown: "Main Location",
+                batch: "Batch-1"
+            }
+        ]
+    }
+};
+
+8. Stock Group                           [type: stockGroup]
+const voucher = {
+    company: "Google",
+
+    stockGroups: [
+        {
+            name: "Stationary Items",
+            parent: "",
+        },
+        {
+            name: "Office Supplies",
+            parent: "Stationary Items"
+        }
+    ]
+};
+
+9. Stock Item                           [type: stackItem]
+const voucher = {
+    company: "Google",
+
+    groups: [
+        { name: "Stationary Items", parent: "Primary" }
+    ],
+
+    items: [
+        {
+            name: "Pencil",
+            parent: "Stationary Items",
+            unit: "Nos",
+            gstApplicable: true
+        },
+        {
+            name: "Pen",
+            parent: "Stationary Items",
+            unit: "Nos",
+            gstApplicable: true
+        }
+    ]
+};

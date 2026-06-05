@@ -1,0 +1,229 @@
+{
+  "id": "vHQwR7EiWWxCbdcF",
+  "name": "Laminate - Tally Ledger & Voucher Assistant",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {
+          "inputPlaceholder": "e.g. Create a bank account ledger for company Google...",
+          "subtitle": "Create Tally ledgers and vouchers using natural language",
+          "title": "Laminate"
+        }
+      },
+      "id": "18406a7b-cf10-4886-ae2f-486864a7834c",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        7744,
+        800
+      ],
+      "webhookId": "laminate-chat"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are Laminate, a conversational assistant that helps users create ledgers and vouchers in Tally ERP.\n\nYou have three tools:\n1. get_schema \u2014 looks up the required and optional fields for a specific operation and type\n2. create_ledger \u2014 sends a natural language command to create a ledger in Tally\n3. create_voucher \u2014 sends a natural language command to create a voucher in Tally\n\nCRITICAL RULES:\n- You MUST call get_schema FIRST to look up all required and optional fields for the type the user wants.\n- You MUST collect ALL required fields from the user before calling create_ledger or create_voucher.\n- If the user has not provided a required field, ASK for it. Do NOT guess or leave it empty.\n- Only call the create tool once you have confirmed ALL required fields are present.\n- Optional fields: ask about common ones (opening balance, bank details, address) but don't overwhelm.\n\nYour workflow:\n1. Identify what the user wants (ledger or voucher, which type)\n2. Call get_schema with operation (\"ledger\" or \"voucher\") and type to get required/optional fields\n3. Check which required fields the user already provided vs which are missing\n4. Ask the user for any missing REQUIRED fields\n5. Optionally ask about relevant optional fields\n6. Summarize what you will create and ask for confirmation\n7. On confirmation, call the appropriate create tool with a COMPLETE natural language description including ALL fields\n\nAvailable ledger types: sundryCreditors, sundryDebtors, bankAccounts, bankOd, bankDivisions, capitalAccount, cashInHand, currentLiabilities, depositAssets, directExpenses, directIncomes, dutiesAndTaxes, fixedAssets, indirectExpenses, indirectIncome, investments, loanAndAdvencesAssets, loanLiability, missExpensesAsset, provision, purchaseAccount, reservesAndSurplus, salesAccount, securedLoans, stockInHand, suspense, unsecuredLoan\n\nAvailable voucher types: contra, journal, payment, purchase, receipt, sales, inventory, stockGroup, stockItem\n\nWhen calling create_ledger:\n- Include ALL collected details in natural English\n- Format: \"Create a [type] ledger for company [name] named [ledger name] with [field1] [value1], [field2] [value2]...\"\n\nWhen calling create_voucher:\n- Include ALL collected details in natural English\n- For contra/journal: \"Create a [type] voucher for company [name] on [date]. Debit [ledger] Rs [amount], Credit [ledger] Rs [amount]. Narration: [text]\"\n- For payment: \"Create a payment voucher for company [name] on [date]. Pay [expense ledger] Rs [amount] from [bank/cash ledger]. Narration: [text]\"\n- For purchase: \"Create a purchase voucher for company [name] on [date] from supplier [party]. Purchase [qty] [item] at Rs [rate] each. Narration: [text]\"\n- For sales: \"Create a sales voucher for company [name] on [date] to customer [party]. Sell [item] for Rs [amount] via [sales ledger]. Narration: [text]\"\n- For receipt: \"Create a receipt voucher for company [name] on [date]. Receive Rs [amount] into [bank/cash] from [income ledger]. Narration: [text]\"\n- For stockGroup/stockItem: \"Create stock groups/items for company [name]: [names and parents]\"\n- For inventory: \"Create an inventory voucher for company [name] on [date]. Transfer [qty] [item] from [godown] to [godown]. Narration: [text]\"\n\nDates: always use DD Month YYYY format in conversation, the backend handles conversion.\n\nRules:\n- NEVER call create_ledger or create_voucher without having ALL required fields.\n- Be conversational, not robotic.\n- If unsure about the type, ask the user to clarify."
+        }
+      },
+      "id": "a39662ce-7e06-4247-825c-a5a739e02046",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        7968,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "model": "mistral-small-latest",
+        "options": {}
+      },
+      "id": "7bf2ee52-e497-4fe9-9450-cb1154b652d9",
+      "name": "Mistral Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        7888,
+        1008
+      ],
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "2t6ug8n4EguvoQ8B",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 16000
+      },
+      "id": "a6f0287a-a9ea-4535-b1ef-57ed32de1089",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        8048,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "name": "get_schema",
+        "description": "Looks up the required and optional fields for a given operation and type. Call this before creating any ledger or voucher to know exactly what fields are needed. The operation is either ledger or voucher. The type is the specific kind like sundryCreditors, bankAccounts, bankOd, capitalAccount, cashInHand, contra, journal, payment, purchase, receipt, sales, inventory, stockGroup, stockItem etc.",
+        "url": "http://localhost:3000/schema",
+        "sendQuery": true,
+        "specifyQuery": "model",
+        "options": {}
+      },
+      "id": "29c6a003-7fa3-495a-90b3-694d73d3834e",
+      "name": "Get Schema Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        7872,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "name": "create_ledger",
+        "description": "Sends a natural language ledger creation command to the processing queue. The userText should be a complete English sentence with ALL required fields: company name, ledger name, group type, and all collected details (opening balance, address, PAN, bank details, etc).",
+        "method": "POST",
+        "url": "https://laminate-cloud-queue.onrender.com/entry",
+        "sendBody": true,
+        "specifyBody": "model",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "headerParameters": {
+          "values": [
+            {
+              "name": "Accept",
+              "value": "*/*"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cf730b99-c346-4221-9c70-ebafda2d7f3c",
+      "name": "Create Ledger Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        8064,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "name": "create_voucher",
+        "description": "Sends a natural language voucher creation command to the processing queue. The userText should describe the complete voucher: company name, voucher type, date, all ledger entries with amounts and debit/credit direction, and narration.",
+        "method": "POST",
+        "url": "https://laminate-cloud-queue.onrender.com/entry",
+        "sendBody": true,
+        "specifyBody": "model",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "headerParameters": {
+          "values": [
+            {
+              "name": "Accept",
+              "value": "*/*"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "voucher-tool-001",
+      "name": "Create Voucher Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        8256,
+        1200
+      ]
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Schema Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Ledger Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Voucher Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {}
+}

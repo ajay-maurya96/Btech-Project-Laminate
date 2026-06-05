@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laminate</title>
+  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #e8ece5;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <script type="module">
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+    createChat({
+      webhookUrl: 'http://localhost:5678/webhook/laminate-chat',
+      initialMessages: ['Hi! I\'m Laminate. I can help you create ledgers in Tally ERP. What would you like to create?'],
+      i18n: {
+        en: {
+          title: 'Laminate',
+          subtitle: 'Create Tally ledgers using natural language',
+          inputPlaceholder: 'e.g. Create a bank account ledger for company Google...',
+          getStarted: 'New Conversation',
+        },
+      },
+    });
+  </script>
+</body>
+</html>
